@@ -1,0 +1,84 @@
+on: [push, pull_request]
+
+name: Continuous integration
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+  fmt:
+    name: Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - run: rustup component add rustfmt
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - run: rustup component add clippy
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-features -- -D warnings
+
+  test:
+    name: Test ${{ matrix.job.os }} (${{ matrix.job.target }})
+    needs: [check, fmt, clippy]
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          # Disabling ARM tests for now
+          # - { os: ubuntu-latest , target: arm-unknown-linux-gnueabihf , use-cross: true }
+          # - { os: ubuntu-latest , target: aarch64-unknown-linux-gnu , use-cross: true }
+          - { os: ubuntu-latest, target: i686-unknown-linux-gnu, use-cross: true }
+          - { os: ubuntu-latest, target: i686-unknown-linux-musl, use-cross: true }
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-musl, use-cross: true }
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu }
+          - { os: macos-10.15, target: x86_64-apple-darwin }
+          - { os: windows-latest, target: i686-pc-windows-msvc }
+          - { os: windows-latest, target: x86_64-pc-windows-gnu }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          target: ${{ matrix.job.target }}
+
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: ${{ matrix.job.use-cross }}
+          command: test
+          args: --target=${{ matrix.job.target }}
