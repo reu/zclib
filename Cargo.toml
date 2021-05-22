@@ -1,9 +1,9 @@
 [package]
 name = "zclib"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Rodrigo Navarro <rnavarro@rnavarro.com.br>"]
 edition = "2018"
-categories = ["Command line utilities", "Compression"]
+categories = ["command-line-utilities", "compression"]
 keywords = ["zlib", "deflate"]
 description = "Zlib command line interface"
 license = "MIT"
