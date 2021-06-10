@@ -8,16 +8,15 @@ fn test_compressing_and_decompressing() -> Result<(), Box<dyn std::error::Error>
     let compress_result = Command::cargo_bin(env!("CARGO_PKG_NAME"))?
         .write_stdin(content.to_owned())
         .assert()
-        .success();
-    let compressed_content = &compress_result.get_output().stdout;
-    assert_ne!(compressed_content, content);
+        .success()
+        .stdout(predicate::ne(content as &[u8]));
 
-    let decompress_result = Command::cargo_bin(env!("CARGO_PKG_NAME"))?
+    Command::cargo_bin(env!("CARGO_PKG_NAME"))?
         .arg("--decompress")
-        .write_stdin(compressed_content.to_owned())
+        .write_stdin(compress_result.get_output().stdout.to_owned())
         .assert()
-        .success();
-    assert_eq!(decompress_result.get_output().stdout, content);
+        .success()
+        .stdout(predicate::eq(content as &[u8]));
 
     Ok(())
 }
