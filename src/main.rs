@@ -5,14 +5,18 @@ use flate2::{
 };
 use std::{fs, io};
 
-fn valid_level(level: String) -> Result<(), String> {
+fn parse_level(level: &str) -> Result<u32, String> {
     level
         .parse::<u32>()
         .map_err(|_| "Invalid number".to_owned())
         .and_then(|level| match level {
-            0..=9 => Ok(()),
+            0..=9 => Ok(level),
             _ => Err("Level must be in the 0-9 range".to_owned()),
         })
+}
+
+fn valid_level(level: String) -> Result<(), String> {
+    parse_level(level.as_str()).map(|_| ())
 }
 
 fn valid_file(path: String) -> Result<(), String> {
@@ -43,11 +47,11 @@ fn main() -> Result<(), io::Error> {
     } else if args.is_present("fast") {
         Compression::fast()
     } else if args.is_present("level") {
-        let level = args
-            .value_of("level")
-            .and_then(|level| level.parse::<u32>().ok())
-            .unwrap();
-        Compression::new(level)
+        args.value_of("level")
+            .and_then(|level| parse_level(level).ok())
+            .map(Compression::new)
+            // At this point Clap already validated the level, so we can safely unwrap
+            .unwrap()
     } else {
         // Using the same default compression level as gzip
         Compression::new(6)
