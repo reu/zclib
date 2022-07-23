@@ -1,6 +1,6 @@
 [package]
 name = "zclib"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Rodrigo Navarro <rnavarro@rnavarro.com.br>"]
 edition = "2018"
 categories = ["command-line-utilities", "compression"]
